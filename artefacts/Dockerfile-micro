@@ -1,0 +1,34 @@
+# (c) 2025 Copyright, Real-Time Innovations, Inc.  All rights reserved.
+# RTI grants Licensee a license to use, modify, compile, and create derivative
+# works of the Software.  Licensee has the right to distribute object form only
+# for use with RTI products.  The Software is provided "as is", with no warranty
+# of any type, including any warranty for fitness for any purpose. RTI is under
+# no obligation to maintain or support the Software.  RTI shall not be liable
+# for any incidental or consequential damages arising out of the use or
+# inability to use the software.
+
+
+# Build connext:buildhost with artefacts/Dockerfile first. From the repository
+# root, with the three Micro packages in that build context, run:
+#   docker build -f artefacts/Dockerfile-micro -t connext:micro --build-arg MICRO_VERSION=4.3.0 .
+# The Micro packages must be compatible with the Connext DDS version in the base image.
+FROM connext:buildhost AS connext-micro
+
+ARG MICRO_VERSION=4.3.0
+
+WORKDIR /tmp/rti_install
+
+# Copy and install only the Connext Micro packages; the base image supplies
+# Connext DDS, its package installer, compiler toolchain, license setup, and SSH.
+COPY rti_connext_dds_micro-${MICRO_VERSION}-host.rtipkg \
+     rti_connext_dds_micro-${MICRO_VERSION}-target-x86_64leElfgcc13.3.0.rtipkg \
+     rti_connext_dds_micro-${MICRO_VERSION}-target-armv8aleElfgcc11.3.1.rtipkg \
+     ./
+
+RUN "${NDDSHOME}/bin/rtipkginstall" -u rti_connext_dds_micro-${MICRO_VERSION}-host.rtipkg \
+    && "${NDDSHOME}/bin/rtipkginstall" -u rti_connext_dds_micro-${MICRO_VERSION}-target-x86_64leElfgcc13.3.0.rtipkg \
+    && "${NDDSHOME}/bin/rtipkginstall" -u rti_connext_dds_micro-${MICRO_VERSION}-target-armv8aleElfgcc11.3.1.rtipkg \
+    && rm -rf /tmp/rti_install
+
+ENV RTIMEHOME=${NDDSHOME}/rti_connext_dds_micro-${MICRO_VERSION}
+ENV PATH=${RTIMEHOME}/rtiddsgen/scripts:${RTIMEHOME}/resource/scripts:${PATH}

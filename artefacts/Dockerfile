@@ -27,7 +27,7 @@
 #
 # The container will start and run the sshd service interactively - to interact with the container you'll have to use ssh on port 23.
 
-FROM ubuntu:jammy AS install-stage 
+FROM ubuntu:jammy AS connext-build
 
 ARG CONNEXT_VERSION=7.3.0
 ARG RTI_LICENSE_AGREEMENT_ACCEPTED
@@ -103,11 +103,11 @@ RUN ln -fs /root/rti_license.dat ${NDDSHOME}/rti_license.dat > /dev/null 2>&1
 RUN echo "source \${NDDSHOME}/resource/scripts/rtisetenv_x64Linux*.bash" >> /root/.bashrc
 RUN echo "source \${NDDSHOME}/resource/scripts/rtisetenv_x64Linux*.bash" >> /home/${SSHUSERNAME}/.bashrc
 
-FROM scratch AS final-stage
+FROM scratch AS connext-runtime
 
 WORKDIR /root
 
-COPY --from=install-stage / /
+COPY --from=connext-build / /
 
 RUN service ssh start
 EXPOSE 23
